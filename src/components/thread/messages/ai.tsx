@@ -14,6 +14,11 @@ import { ThreadView } from "../agent-inbox";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { GenericInterruptView } from "./generic-interrupt";
 import { useArtifact } from "../artifact";
+import {
+  Visualization,
+  extractVisualizationData,
+  type VisualizationData,
+} from "../visualization";
 
 function CustomComponent({
   message,
@@ -141,6 +146,12 @@ export function AssistantMessage({
   const hasAnthropicToolCalls = !!anthropicStreamedToolCalls?.length;
   const isToolResult = message?.type === "tool";
 
+  // Extract visualization data from state or message content
+  const stateValues = meta?.firstSeenState?.values || thread.values;
+  const { visualization: visualizationData, sqlResult } = stateValues
+    ? extractVisualizationData(contentString, stateValues)
+    : extractVisualizationData(contentString);
+
   if (isToolResult && hideToolCalls) {
     return null;
   }
@@ -163,6 +174,11 @@ export function AssistantMessage({
               <div className="py-1">
                 <MarkdownText>{contentString}</MarkdownText>
               </div>
+            )}
+
+            {/* Render visualization if available */}
+            {visualizationData && (
+              <Visualization data={visualizationData} sqlResult={sqlResult} />
             )}
 
             {!hideToolCalls && (
